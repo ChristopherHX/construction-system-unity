@@ -1,0 +1,27 @@
+Unity - Manual: Hinge Joint component reference
+https://docs.unity3d.com/6000.3/Documentation/Manual/class-HingeJoint.html
+
+Unity - Manual: Introduction to joints
+https://docs.unity3d.com/6000.3/Documentation/Manual/Joints.html
+
+Unity - Manual: Fixed Joint component reference
+https://docs.unity3d.com/6000.3/Documentation/Manual/class-FixedJoint.html
+
+Unity - Manual: Spring Joint component reference
+https://docs.unity3d.com/6000.3/Documentation/Manual/class-SpringJoint.html
+
+VIsualising a Spring Joint - Getting Started - Unity Discussions
+https://discussions.unity.com/t/visualising-a-spring-joint/1695595
+
+Unity Script Reference – HingeJoint.motor
+https://docs.unity3d.com/410/Documentation/ScriptReference/HingeJoint-motor.html#:~:text=%2F%2F%20Make%20the%20hinge%20motor%20rotate%20with%2090,enables%20the%20motor%20by%20setting%20HingeJoint.useMotor%20to%20true.
+
+Unity - Scripting API: Rigidbody
+https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Rigidbody.html
+
+Unity - Manual: Mesh LOD
+https://docs.unity3d.com/6000.0/Documentation/Manual/LevelOfDetail.html
+
+Unity - Manual: Configure mesh LOD
+https://docs.unity3d.com/6000.0/Documentation/Manual/configure-mesh-lod.html
+
