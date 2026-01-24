@@ -27,16 +27,20 @@ public class LockRotation : MonoBehaviour
     // Based on https://copilot.microsoft.com/shares/e6rTxAvrztmZKLmBEPm43
 
     public float torqueStrength = 10f;
-    public float damping = 2f;
+    public float damping = 50f;
 
     void FixedUpdate()
     {
+        WindZone windZone = null;
         var rb = _rigidbody;
         // // 1. Direction to target
         // Vector3 toTarget = (target.position - rb.position).normalized;
 
         // 2. Desired rotation
-        Quaternion desiredRot = Quaternion.identity;
+        Quaternion desiredRot = Quaternion.identity * Quaternion.Euler(90, 90, 0);
+        // transform.rotation
+
+        // desiredRot.eulerAngles = new Vector3(0, desiredRot.eulerAngles.y, 0);
 
         // 3. Rotation difference
         Quaternion delta = desiredRot * Quaternion.Inverse(rb.rotation);
@@ -57,10 +61,12 @@ public class LockRotation : MonoBehaviour
         // torque -= rb.angularVelocity * damping;
 
         // ❗ Only rotate around X and Z
-        acc.y = 0f;
+        // acc.y = 0f;
 
         // Add damping
-        acc -= new Vector3(rb.angularVelocity.x, 0f, rb.angularVelocity.z) * damping;
+        acc -= new Vector3(rb.angularVelocity.x, rb.angularVelocity.y, rb.angularVelocity.z) * damping;
+
+        // acc.y = 0f;
 
         // rb.AddTorque(acc, ForceMode.Acceleration);
 
@@ -73,5 +79,6 @@ public class LockRotation : MonoBehaviour
 
         // Debug.Log("Equivalent torque: " + torque);
         rb.AddTorque(torque, ForceMode.Force);
+        // rb.MoveRotation(desiredRot);
     }
 }
