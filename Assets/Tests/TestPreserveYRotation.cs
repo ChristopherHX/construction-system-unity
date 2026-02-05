@@ -137,4 +137,29 @@ public class TestPreserveYRotation
         Assert.AreEqual(l, r, $"{l.eulerAngles} / {r.eulerAngles}");
     }
 
+    private Quaternion RemoveRollPitch2(Quaternion quat)
+    {
+        var result = Quaternion.FromToRotation(quat * Vector3.up, Vector3.up);
+        result.ToAngleAxis(out var angle, out var axis);
+        Debug.Log($"PRED {angle} / {axis} / {quat * Vector3.up}");
+        // quat.ToAngleAxis(out angle, out axis);
+        // Debug.Log($"EXP Y 0 {angle} / {axis}");
+        // result = Quaternion.AngleAxis(angle, axis);
+        return result;
+    }
+
+    [Test]
+    public void TestRemoveRollPitchFinal()
+    {
+        var torqueStrength = 1;
+        var damping = 1;
+        Quaternion start = Quaternion.AngleAxis(54, new Vector3(1, 0, 2)) * Quaternion.AngleAxis(50, Vector3.up);
+        var desired = RemoveRollPitch2(start) * start;
+        var delta = desired * Quaternion.Inverse(start);
+        delta.ToAngleAxis(out float angle, out Vector3 axis);
+        angle = Mathf.DeltaAngle(0, angle);
+        Vector3 acc = axis.normalized * angle * torqueStrength;
+        //acc -= new Vector3(rb.angularVelocity.x, rb.angularVelocity.y, rb.angularVelocity.z) * damping;
+    }
+
 }
