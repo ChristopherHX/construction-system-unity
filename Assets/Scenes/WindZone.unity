@@ -131,6 +131,9 @@ GameObject:
   - component: {fileID: 5697393}
   - component: {fileID: 5697392}
   - component: {fileID: 5697391}
+  - component: {fileID: 5697397}
+  - component: {fileID: 5697396}
+  - component: {fileID: 5697395}
   m_Layer: 0
   m_Name: Sphere (1)
   m_TagString: Untagged
@@ -155,7 +158,7 @@ SphereCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
@@ -231,6 +234,65 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 45, z: 0}
+--- !u!138 &5697395
+FixedJoint:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5697390}
+  serializedVersion: 1
+  m_ConnectedBody: {fileID: 150453830}
+  m_ConnectedArticulationBody: {fileID: 0}
+  m_BreakForce: Infinity
+  m_BreakTorque: Infinity
+  m_EnableCollision: 0
+  m_EnablePreprocessing: 1
+  m_MassScale: 1
+  m_ConnectedMassScale: 1
+--- !u!138 &5697396
+FixedJoint:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5697390}
+  serializedVersion: 1
+  m_ConnectedBody: {fileID: 686380294}
+  m_ConnectedArticulationBody: {fileID: 0}
+  m_BreakForce: Infinity
+  m_BreakTorque: Infinity
+  m_EnableCollision: 0
+  m_EnablePreprocessing: 1
+  m_MassScale: 1
+  m_ConnectedMassScale: 1
+--- !u!54 &5697397
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5697390}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1001 &150453826
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -347,13 +409,17 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 150453827}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c0f64f59338444dd1aefadca5f6bdc7c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LockRotation
   torqueStrength: 10
   damping: 50
+  rawDesiredRotation: 
+  desiredRotation: {x: 0, y: 0, z: 0}
+  currentRotation: {x: 0, y: 0, z: 0}
+  rawRotation: 
 --- !u!54 &150453830
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -665,6 +731,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LockRotation
   torqueStrength: 10
   damping: 50
+  rawDesiredRotation: 
+  desiredRotation: {x: 0, y: 0, z: 0}
+  currentRotation: {x: 0, y: 0, z: 0}
+  rawRotation: 
 --- !u!54 &686380294
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1148,6 +1218,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LockRotation
   torqueStrength: 10
   damping: 50
+  rawDesiredRotation: 
+  desiredRotation: {x: 0, y: 0, z: 0}
+  currentRotation: {x: 0, y: 0, z: 0}
+  rawRotation: 
 --- !u!54 &1339091038
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1249,6 +1323,9 @@ GameObject:
   - component: {fileID: 1510593223}
   - component: {fileID: 1510593222}
   - component: {fileID: 1510593221}
+  - component: {fileID: 1510593227}
+  - component: {fileID: 1510593226}
+  - component: {fileID: 1510593225}
   m_Layer: 0
   m_Name: Sphere
   m_TagString: Untagged
@@ -1273,7 +1350,7 @@ SphereCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
@@ -1349,6 +1426,65 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 45, z: 0}
+--- !u!138 &1510593225
+FixedJoint:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1510593220}
+  serializedVersion: 1
+  m_ConnectedBody: {fileID: 150453830}
+  m_ConnectedArticulationBody: {fileID: 0}
+  m_BreakForce: Infinity
+  m_BreakTorque: Infinity
+  m_EnableCollision: 0
+  m_EnablePreprocessing: 1
+  m_MassScale: 1
+  m_ConnectedMassScale: 1
+--- !u!138 &1510593226
+FixedJoint:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1510593220}
+  serializedVersion: 1
+  m_ConnectedBody: {fileID: 686380294}
+  m_ConnectedArticulationBody: {fileID: 0}
+  m_BreakForce: Infinity
+  m_BreakTorque: Infinity
+  m_EnableCollision: 0
+  m_EnablePreprocessing: 1
+  m_MassScale: 1
+  m_ConnectedMassScale: 1
+--- !u!54 &1510593227
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1510593220}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1 &1683865816 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5196574402282125761, guid: dababfb2fc918440292c1f19ec9b269c, type: 3}
@@ -1491,6 +1627,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LockRotation
   torqueStrength: 2
   damping: 2
+  rawDesiredRotation: 
+  desiredRotation: {x: 0, y: 0, z: 0}
+  currentRotation: {x: 0, y: 0, z: 0}
+  rawRotation: 
 --- !u!1001 &4213208087289218217
 PrefabInstance:
   m_ObjectHideFlags: 0
