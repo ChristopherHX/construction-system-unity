@@ -16,6 +16,7 @@ public class WindMove : MonoBehaviour
 
     void OnTriggerStay(Collider other)
     {
+        var startPos = transform.position - new Vector3(0, 0, GetComponent<Collider>().bounds.extents.z);
         if(other.attachedRigidbody != null)
         {
             other.attachedRigidbody.AddForce(Vector3.forward * 1);
