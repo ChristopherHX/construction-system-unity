@@ -137,7 +137,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &539933004
 Transform:
   m_ObjectHideFlags: 0
@@ -151,7 +151,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1714584539}
+  m_Father: {fileID: 887035272}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!136 &539933005
 CapsuleCollider:
@@ -251,7 +251,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &589007078
 Transform:
   m_ObjectHideFlags: 0
@@ -265,7 +265,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1714584539}
+  m_Father: {fileID: 887035272}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -58.183}
 --- !u!136 &589007079
 CapsuleCollider:
@@ -380,6 +380,8 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1942459866}
+  - {fileID: 539933004}
+  - {fileID: 589007078}
   - {fileID: 1307085786}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -759,9 +761,7 @@ Transform:
   m_LocalPosition: {x: -0.2279, y: 0.00957, z: -0.44504}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 539933004}
-  - {fileID: 589007078}
+  m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1942459862
