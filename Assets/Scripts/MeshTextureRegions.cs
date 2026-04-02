@@ -21,7 +21,7 @@ public static class MeshTextureRegions
         var regions = ExtractColorRegions(tex, tolerance);
         ComputeRegionCenters(regions, tex.width, tex.height);
         ComputeMeshDataForRegions(regions, mesh);
-        regions.RemoveAll(r => r.localNormal == Vector3.zero);
+        regions.RemoveAll(r => r.localNormal == Vector3.zero || r.pixels.Count < 100);
         return regions;
     }
 

@@ -10,7 +10,7 @@ public class VisualizeRaycaster : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        _regions = MeshTextureRegions.Extract(texture, GetComponent<MeshCollider>().sharedMesh, 0.25f);
+        _regions = MeshTextureRegions.Extract(texture, GetComponent<MeshCollider>().sharedMesh, 0.3f);
     }
 
     // Update is called once per frame
@@ -18,7 +18,7 @@ public class VisualizeRaycaster : MonoBehaviour
     {
         foreach (var item in _regions)
         {
-            Debug.DrawRay(transform.InverseTransformPoint(item.localPos), transform.InverseTransformDirection(item.localNormal));
+            Debug.DrawRay(transform.TransformPoint(item.localPos), transform.TransformDirection(item.localNormal));
         }
     }
 }
