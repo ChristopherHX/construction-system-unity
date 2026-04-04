@@ -1,0 +1,73 @@
+#pragma kernel March
+
+// SDF volume
+sampler3D _SDFTex;
+
+// Output buffers
+RWStructuredBuffer<float3> _Vertices;
+RWStructuredBuffer<uint>   _VertexCount;
+
+float3 _GridMin;
+float3 _GridMax;
+int3   _GridResolution;
+float  _IsoLevel;
+
+[numthreads(4,4,4)]
+void March(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= _GridResolution.x-1 ||
+        id.y >= _GridResolution.y-1 ||
+        id.z >= _GridResolution.z-1)
+        return;
+
+    // Compute world position of this voxel corner
+    float3 cellSize = (_GridMax - _GridMin) / (_GridResolution - 1);
+    float3 p = _GridMin + id * cellSize;
+
+    // Sample SDF at 8 cube corners
+    float sdf[8];
+    float3 corner[8];
+
+    [unroll]
+    for (int i = 0; i < 8; i++)
+    {
+        float3 offset = float3(
+            (i & 1) ? 1 : 0,
+            (i & 2) ? 1 : 0,
+            (i & 4) ? 1 : 0
+        );
+
+
+        corner[i] = p + offset * cellSize;
+        float3 uvw = (corner[i] - _GridMin) / (_GridMax - _GridMin);
+        // sdf[i] = _SDFTex.SampleLevel(sampler_SDFTex, uvw, 0);
+        sdf[i] = tex3Dlod(_SDFTex, float4(uvw, 0)).r;
+
+    }
+
+    // Simple case: if all inside or all outside, skip
+    bool allPos = true;
+    bool allNeg = true;
+
+    [unroll]
+    for (int i = 0; i < 8; i++)
+    {
+        allPos = allPos && (sdf[i] > _IsoLevel);
+        allNeg = allNeg && (sdf[i] < _IsoLevel);
+    }
+
+
+    if (allPos || allNeg)
+        return;
+
+    // SUPER simplified: emit a single triangle at the center of the cell
+    // (This is NOT full marching cubes — just enough to test the pipeline)
+    uint index;
+    InterlockedAdd(_VertexCount[0], 3, index);
+
+    float3 center = p + cellSize * 0.5;
+
+    _Vertices[index + 0] = center + float3(0.01, 0, 0);
+    _Vertices[index + 1] = center + float3(0, 0.01, 0);
+    _Vertices[index + 2] = center + float3(0, 0, 0.01);
+}
