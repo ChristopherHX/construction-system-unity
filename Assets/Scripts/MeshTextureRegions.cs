@@ -103,49 +103,18 @@ public static class MeshTextureRegions
     {
         foreach (var r in regions)
         {
-            r.localPos = GetLocalPositionFromUV(mesh, r.centerUV);
-            r.localNormal = GetLocalNormalFromUV(mesh, r.centerUV);
+            (r.localPos, r.localNormal) = GetLocalPositionAndNormalFromUV(mesh, r.centerUV);
         }
     }
 
     // ---------------------------------------------------------
     // UV → LOCAL POSITION
+    // UV → LOCAL NORMAL
     // ---------------------------------------------------------
-    private static Vector3 GetLocalPositionFromUV(Mesh mesh, Vector2 uv)
+    private static (Vector3, Vector3) GetLocalPositionAndNormalFromUV(Mesh mesh, Vector2 uv)
     {
         var uvs = mesh.uv;
         var verts = mesh.vertices;
-        var tris = mesh.triangles;
-
-        for (int i = 0; i < tris.Length; i += 3)
-        {
-            int i0 = tris[i];
-            int i1 = tris[i + 1];
-            int i2 = tris[i + 2];
-
-            Vector2 uv0 = uvs[i0];
-            Vector2 uv1 = uvs[i1];
-            Vector2 uv2 = uvs[i2];
-
-            if (PointInTriangleUV(uv, uv0, uv1, uv2))
-            {
-                Vector3 bary = Barycentric(uv, uv0, uv1, uv2);
-
-                return verts[i0] * bary.x +
-                       verts[i1] * bary.y +
-                       verts[i2] * bary.z;
-            }
-        }
-
-        return Vector3.zero;
-    }
-
-    // ---------------------------------------------------------
-    // UV → LOCAL NORMAL
-    // ---------------------------------------------------------
-    private static Vector3 GetLocalNormalFromUV(Mesh mesh, Vector2 uv)
-    {
-        var uvs = mesh.uv;
         var normals = mesh.normals;
         var tris = mesh.triangles;
 
@@ -159,17 +128,20 @@ public static class MeshTextureRegions
             Vector2 uv1 = uvs[i1];
             Vector2 uv2 = uvs[i2];
 
-            if (PointInTriangleUV(uv, uv0, uv1, uv2))
+            Vector3 bary = Barycentric(uv, uv0, uv1, uv2);
+            if (PointInTriangleUV(bary))
             {
-                Vector3 bary = Barycentric(uv, uv0, uv1, uv2);
-
-                return (normals[i0] * bary.x +
+                return (verts[i0] * bary.x +
+                       verts[i1] * bary.y +
+                       verts[i2] * bary.z,
+                       
+                        (normals[i0] * bary.x +
                         normals[i1] * bary.y +
-                        normals[i2] * bary.z).normalized;
+                        normals[i2] * bary.z).normalized);
             }
         }
 
-        return Vector3.zero;
+        return (Vector3.zero, Vector3.zero);
     }
 
     // ---------------------------------------------------------
@@ -199,9 +171,8 @@ public static class MeshTextureRegions
     // ---------------------------------------------------------
     // POINT IN TRIANGLE (UV SPACE)
     // ---------------------------------------------------------
-    private static bool PointInTriangleUV(Vector2 p, Vector2 a, Vector2 b, Vector2 c)
+    private static bool PointInTriangleUV(Vector3 bary)
     {
-        Vector3 bary = Barycentric(p, a, b, c);
         return bary.x >= 0f && bary.y >= 0f && bary.z >= 0f &&
                bary.x <= 1f && bary.y <= 1f && bary.z <= 1f;
     }
