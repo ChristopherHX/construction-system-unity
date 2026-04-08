@@ -328,6 +328,7 @@ MonoBehaviour:
     e31: 0
     e32: 0
     e33: 0
+  debugMode: 0
 --- !u!1 &1872969419
 GameObject:
   m_ObjectHideFlags: 0

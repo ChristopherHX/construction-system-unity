@@ -1,5 +1,4 @@
 using System;
-using System.ComponentModel;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -14,7 +13,9 @@ public class VisualizeSDF : MonoBehaviour
     public Texture3D rightSDF;
     public Transform rightTransform;
     public Matrix4x4 rightProjection;
-    private MaterialPropertyBlock m_block = null;
+    [Range(0f, 5f)]
+    public float debugMode = 0f;
+    private int m_lastDebugLogFrame = -9999;
 
     void OnEnable()
     {
@@ -32,22 +33,80 @@ public class VisualizeSDF : MonoBehaviour
         {
             return;
         }
-        m_block ??= new();
-        m_block.SetTexture("leftSDF", leftSDF);
-        m_block.SetTexture("rightSDF", rightSDF);
-        m_block.SetVector("leftPosition", leftTransform.position);
-        m_block.SetVector("rightPosition", rightTransform.position);
-        m_block.SetMatrix("leftProjection", leftProjection);
-        m_block.SetMatrix("rightProjection", rightProjection);
+
+        bool hasLeft = TryGetWorldToSdfMatrix(leftTransform, out var leftWorldToSdf, out var leftCenter);
+        bool hasRight = TryGetWorldToSdfMatrix(rightTransform, out var rightWorldToSdf, out var rightCenter);
+
+        material.SetTexture("leftSDF", leftSDF);
+        material.SetTexture("rightSDF", rightSDF);
+        material.SetVector("leftPosition", hasLeft ? leftCenter : (leftTransform != null ? leftTransform.position : Vector3.zero));
+        material.SetVector("rightPosition", hasRight ? rightCenter : (rightTransform != null ? rightTransform.position : Vector3.zero));
+        material.SetMatrix("leftProjection", leftProjection);
+        material.SetMatrix("rightProjection", rightProjection);
+        material.SetMatrix("leftWorldToSdf", hasLeft ? leftWorldToSdf : Matrix4x4.identity);
+        material.SetMatrix("rightWorldToSdf", hasRight ? rightWorldToSdf : Matrix4x4.identity);
+        material.SetFloat("_DebugMode", debugMode);
+
+        if(debugMode > 0f && Time.frameCount - m_lastDebugLogFrame > 30)
+        {
+            m_lastDebugLogFrame = Time.frameCount;
+            Debug.Log($"VisualizeSDF debug cam={camera.name} mode={debugMode} leftTex={(leftSDF != null)} rightTex={(rightSDF != null)} leftMapped={hasLeft} rightMapped={hasRight}");
+        }
+
         camera.GetUniversalAdditionalCameraData().scriptableRenderer.EnqueuePass(
             new RenderFeaturePass(
                 new RenderFeatureSettings {
-                    m_material = material,
-                    m_materialPropertyBlock = m_block
+                    m_material = material
                 }
             ) {
-                renderPassEvent = RenderPassEvent.AfterRenderingOpaques
+                renderPassEvent = RenderPassEvent.AfterRendering
             }
+        );
+    }
+
+    private static bool TryGetWorldToSdfMatrix(Transform source, out Matrix4x4 worldToSdf, out Vector3 worldCenter)
+    {
+        worldToSdf = Matrix4x4.identity;
+        worldCenter = Vector3.zero;
+
+        if(source == null)
+        {
+            return false;
+        }
+
+        MeshFilter meshFilter = source.GetComponentInChildren<MeshFilter>();
+        if(meshFilter != null && meshFilter.sharedMesh != null)
+        {
+            Bounds meshBounds = meshFilter.sharedMesh.bounds;
+            Vector3 reciprocalSize = ReciprocalSafe(meshBounds.size);
+            Matrix4x4 meshLocalToSdf = Matrix4x4.Scale(reciprocalSize) * Matrix4x4.Translate(-meshBounds.center);
+            worldToSdf = meshLocalToSdf * meshFilter.transform.worldToLocalMatrix;
+            worldCenter = meshFilter.transform.TransformPoint(meshBounds.center);
+            return true;
+        }
+
+        Renderer renderer = source.GetComponentInChildren<Renderer>();
+        if(renderer != null)
+        {
+            Bounds worldBounds = renderer.bounds;
+            Vector3 reciprocalSize = ReciprocalSafe(worldBounds.size);
+            worldToSdf = Matrix4x4.Scale(reciprocalSize) * Matrix4x4.Translate(-worldBounds.center);
+            worldCenter = worldBounds.center;
+            return true;
+        }
+
+        worldToSdf = source.worldToLocalMatrix;
+        worldCenter = source.position;
+        return true;
+    }
+
+    private static Vector3 ReciprocalSafe(Vector3 value)
+    {
+        const float epsilon = 1e-6f;
+        return new Vector3(
+            Mathf.Abs(value.x) > epsilon ? 1f / value.x : 1f,
+            Mathf.Abs(value.y) > epsilon ? 1f / value.y : 1f,
+            Mathf.Abs(value.z) > epsilon ? 1f / value.z : 1f
         );
     }
 
@@ -56,7 +115,6 @@ public class VisualizeSDF : MonoBehaviour
     public class RenderFeatureSettings
     {
         public Material m_material;
-        public MaterialPropertyBlock m_materialPropertyBlock;
     }
 
     class RenderFeaturePass : ScriptableRenderPass
@@ -72,7 +130,7 @@ public class VisualizeSDF : MonoBehaviour
         // It is used to execute draw commands.
         static void ExecutePass(RenderFeatureSettings data, RasterGraphContext context)
         {
-            CoreUtils.DrawFullScreen(context.cmd, data.m_material, properties: data.m_materialPropertyBlock, shaderPassId: 0);
+            CoreUtils.DrawFullScreen(context.cmd, data.m_material, shaderPassId: 0);
         }
 
         // RecordRenderGraph is where the RenderGraph handle can be accessed, through which render passes can be added to the graph.
@@ -89,7 +147,6 @@ public class VisualizeSDF : MonoBehaviour
                 // Use this scope to set the required inputs and outputs of the pass and to
                 // setup the passData with the required properties needed at pass execution time.
                 passData.m_material = settings.m_material;
-                passData.m_materialPropertyBlock = settings.m_materialPropertyBlock;
 
                 // Make use of frameData to access resources and camera data through the dedicated containers.
                 // Eg:
