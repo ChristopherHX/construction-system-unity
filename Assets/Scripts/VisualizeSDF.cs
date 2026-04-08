@@ -79,6 +79,7 @@ public class VisualizeSDF : MonoBehaviour
         material.SetMatrix("rightProjection", rightProjection);
         material.SetMatrix("leftWorldToSdf", leftWorldToSdf);
         material.SetMatrix("rightWorldToSdf", rightWorldToSdf);
+        material.SetVector("cameraForward", camera.transform.forward);
         material.SetFloat("_UseMockInput", useMockInput ? 1f : 0f);
         material.SetFloat("_MockRadius", Mathf.Max(mockRadius, 0.001f));
         material.SetFloat("_DebugMode", debugMode);

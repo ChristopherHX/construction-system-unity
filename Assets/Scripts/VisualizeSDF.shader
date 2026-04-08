@@ -59,6 +59,7 @@ Shader "Unlit/VolumeShader"
             float _FarConnectionThickness;
             float _ThinDistance;
             float _ConnectionRange;
+            float3 cameraForward;
             float _UseMockInput;
             float _MockRadius;
             float _DebugMode;
@@ -73,34 +74,12 @@ Shader "Unlit/VolumeShader"
                 return o;
             }
 
-            void ClosestRayToSegment(
-                float3 rayOrigin,
-                float3 rayDirection,
-                float3 segmentStart,
-                float3 segmentEnd,
-                out float rayT,
-                out float segmentT,
-                out float distanceToSegment)
+            float3 ClosestPointOnSegment(float3 point, float3 segmentStart, float3 segmentEnd, out float segmentT)
             {
                 float3 segmentVector = segmentEnd - segmentStart;
                 float segmentLengthSq = max(dot(segmentVector, segmentVector), EPSILON);
-                float raySegmentDot = dot(rayDirection, segmentVector);
-                float3 originToSegment = rayOrigin - segmentStart;
-                float rayOriginDot = dot(rayDirection, originToSegment);
-                float segmentOriginDot = dot(segmentVector, originToSegment);
-
-                float denom = segmentLengthSq - raySegmentDot * raySegmentDot;
-                float unclampedSegmentT = 0.5f;
-                if (abs(denom) > EPSILON)
-                {
-                    unclampedSegmentT = (segmentOriginDot - raySegmentDot * rayOriginDot) / denom;
-                }
-
-                segmentT = saturate(unclampedSegmentT);
-                float3 closestOnSegment = segmentStart + segmentVector * segmentT;
-                rayT = max(dot(closestOnSegment - rayOrigin, rayDirection), 0.0f);
-                float3 closestOnRay = rayOrigin + rayDirection * rayT;
-                distanceToSegment = length(closestOnRay - closestOnSegment);
+                segmentT = saturate(dot(point - segmentStart, segmentVector) / segmentLengthSq);
+                return segmentStart + segmentVector * segmentT;
             }
 
             float SampleSDF(sampler3D sdfTex, float3 localPosition)
@@ -140,26 +119,35 @@ Shader "Unlit/VolumeShader"
                 float3 bridgeVector = rightPosition - leftPosition;
                 float bridgeDistance = max(length(bridgeVector), EPSILON);
                 float3 bridgeDirection = bridgeVector / bridgeDistance;
-
-                float closestRayT = 0.0f;
-                float closestBridgeT = 0.0f;
-                float rayToBridgeDistance = 0.0f;
-                ClosestRayToSegment(rayOrigin, rayDirection, leftPosition, rightPosition, closestRayT, closestBridgeT, rayToBridgeDistance);
-
-                float gateRadius = _ConnectionRange + bridgeDistance * 0.3f;
-                if (rayToBridgeDistance > gateRadius)
+                float3 planeNormal = normalize(cameraForward);
+                float planeDenom = dot(rayDirection, planeNormal);
+                if (abs(planeDenom) <= EPSILON)
                 {
                     return float4(0.0f, 0.0f, 0.0f, 0.0f);
                 }
 
-                if (_DebugMode >= 3.0f && _DebugMode < 4.0f)
+                float3 bridgeMidPoint = (leftPosition + rightPosition) * 0.5f;
+                float tPlane = dot(bridgeMidPoint - rayOrigin, planeNormal) / planeDenom;
+                if (tPlane <= 0.0f)
                 {
-                    float gateVis = saturate(1.0f - rayToBridgeDistance / max(gateRadius, EPSILON));
-                    return float4(gateVis, closestBridgeT, saturate(closestRayT / 20.0f), 1.0f);
+                    return float4(0.0f, 0.0f, 0.0f, 0.0f);
                 }
 
-                float3 samplePositionWS = rayOrigin + rayDirection * closestRayT;
+                float3 samplePositionWS = rayOrigin + rayDirection * tPlane;
                 float thinDistance = max(_ThinDistance, EPSILON);
+                float along = dot(samplePositionWS - leftPosition, bridgeDirection);
+                float alongMargin = max(0.05f, bridgeDistance * 0.2f);
+                float startGate = smoothstep(-alongMargin, 0.0f, along);
+                float endGate = 1.0f - smoothstep(bridgeDistance, bridgeDistance + alongMargin, along);
+                float betweenGate = startGate * endGate;
+
+                float segmentT = 0.0f;
+                float3 closestOnBridge = ClosestPointOnSegment(samplePositionWS, leftPosition, rightPosition, segmentT);
+                float radialDistance = length(samplePositionWS - closestOnBridge);
+                float rangeRadius = max(_ConnectionRange, 0.02f);
+                float rangeGate = saturate(1.0f - radialDistance / rangeRadius);
+                rangeGate *= rangeGate;
+
                 float leftDistance = 0.0f;
                 float rightDistance = 0.0f;
                 if (_UseMockInput > 0.5f)
@@ -175,44 +163,35 @@ Shader "Unlit/VolumeShader"
                     rightDistance = SampleSDF(rightSDF, rightPositionLS);
                 }
 
-                float distanceDifference = abs(leftDistance - rightDistance);
-                float bothDistance = (leftDistance + rightDistance) * 0.5f;
-                float thinFactor = saturate(max(bothDistance, 0.0f) / thinDistance);
+                float leftOutsideDistance = max(leftDistance, 0.0f);
+                float rightOutsideDistance = max(rightDistance, 0.0f);
+                float bothDistance = 0.5f * (leftOutsideDistance + rightOutsideDistance);
+                float thinFactor = saturate(bothDistance / thinDistance);
                 float connectionThickness = lerp(_NearConnectionThickness, _FarConnectionThickness, thinFactor);
                 connectionThickness = max(connectionThickness, EPSILON);
 
-                float coreBand = saturate((connectionThickness - distanceDifference) / connectionThickness);
-                float outsideMeanDistance = max(bothDistance, 0.0f);
-                float rangeFade = saturate(1.0f - outsideMeanDistance / max(_ConnectionRange, EPSILON));
-
-                float along = dot(samplePositionWS - leftPosition, bridgeDirection);
-                float alongMargin = max(connectionThickness * 1.5f, 0.02f);
-                float startGate = smoothstep(-alongMargin, 0.0f, along);
-                float endGate = 1.0f - smoothstep(bridgeDistance, bridgeDistance + alongMargin, along);
-                float betweenGate = startGate * endGate;
-
-                float3 closestOnBridge = leftPosition + bridgeDirection * saturate(along / bridgeDistance) * bridgeDistance;
-                float radialDistance = length(samplePositionWS - closestOnBridge);
-                float radialRadius = max(connectionThickness * 2.5f, _ConnectionRange + bridgeDistance * 0.1f);
-                float radialGate = saturate(1.0f - radialDistance / max(radialRadius, EPSILON));
-                radialGate *= radialGate;
-
-                float grey = coreBand * rangeFade * betweenGate * radialGate;
+                float overlap = saturate((connectionThickness - max(leftOutsideDistance, rightOutsideDistance)) / connectionThickness);
+                float outsideGate = step(0.0f, leftDistance) * step(0.0f, rightDistance);
+                float grey = overlap * betweenGate * rangeGate * outsideGate;
                 grey = saturate(grey);
 
                 if (_UseMockInput > 0.5f)
                 {
-                    float mockTube = saturate(1.0f - rayToBridgeDistance / max(gateRadius, EPSILON));
-                    float mockAlong = smoothstep(0.0f, 0.1f, closestBridgeT) * (1.0f - smoothstep(0.9f, 1.0f, closestBridgeT));
+                    float mockTube = rangeGate;
+                    float mockAlong = smoothstep(0.0f, 0.1f, segmentT) * (1.0f - smoothstep(0.9f, 1.0f, segmentT));
                     grey = max(grey, mockTube * mockAlong);
+                }
+
+                if (_DebugMode >= 3.0f && _DebugMode < 4.0f)
+                {
+                    return float4(betweenGate, rangeGate, outsideGate, 1.0f);
                 }
 
                 if (_DebugMode >= 4.0f && _DebugMode < 5.0f)
                 {
-                    float coreVis = saturate(coreBand);
-                    float rangeVis = saturate(rangeFade);
-                    float gateVis = saturate(1.0f - rayToBridgeDistance / max(gateRadius, EPSILON));
-                    return float4(coreVis, rangeVis, gateVis, 1.0f);
+                    float overlapVis = saturate(overlap);
+                    float thicknessVis = saturate(connectionThickness / max(_NearConnectionThickness, EPSILON));
+                    return float4(overlapVis, thicknessVis, grey, 1.0f);
                 }
 
                 if (_DebugMode >= 5.0f)
