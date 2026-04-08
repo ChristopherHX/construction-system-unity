@@ -74,11 +74,11 @@ Shader "Unlit/VolumeShader"
                 return o;
             }
 
-            float3 ClosestPointOnSegment(float3 point, float3 segmentStart, float3 segmentEnd, out float segmentT)
+            float3 ClosestPointOnSegment(float3 p, float3 segmentStart, float3 segmentEnd, out float segmentT)
             {
                 float3 segmentVector = segmentEnd - segmentStart;
                 float segmentLengthSq = max(dot(segmentVector, segmentVector), EPSILON);
-                segmentT = saturate(dot(point - segmentStart, segmentVector) / segmentLengthSq);
+                segmentT = saturate(dot(p - segmentStart, segmentVector) / segmentLengthSq);
                 return segmentStart + segmentVector * segmentT;
             }
 
@@ -112,7 +112,7 @@ Shader "Unlit/VolumeShader"
                 if (_DebugMode >= 2.0f && _DebugMode < 3.0f)
                 {
                     return float4(uv.x, uv.y, 0.0f, 1.0f);
-                }
+                } 
 
                 float3 rayOrigin = _WorldSpaceCameraPos;
                 float3 rayDirection = GetRayDirection(uv);
