@@ -328,6 +328,10 @@ MonoBehaviour:
     e31: 0
     e32: 0
     e33: 0
+  useMockInput: 0
+  mockLeftOffset: {x: -0.8, y: 0, z: 0}
+  mockRightOffset: {x: 0.8, y: 0, z: 0}
+  mockRadius: 0.5
   debugMode: 0
 --- !u!1 &1872969419
 GameObject:
@@ -492,8 +496,8 @@ Camera:
   m_GameObject: {fileID: 1940495720}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0.19215688, g: 0.4745098, b: 0.2345221, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0

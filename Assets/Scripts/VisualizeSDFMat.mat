@@ -104,7 +104,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _AddPrecomputedVelocity: 0
-    - _Alpha: 0.35
+    - _Alpha: 1
     - _AlphaClip: 0
     - _AlphaToMask: 0
     - _Blend: 0
@@ -112,7 +112,7 @@ Material:
     - _BumpScale: 1
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
-    - _ConnectionRange: 8
+    - _ConnectionRange: 0.8
     - _Cull: 2
     - _Cutoff: 0.5
     - _DebugMode: 0
@@ -121,12 +121,13 @@ Material:
     - _DstBlend: 0
     - _DstBlendAlpha: 0
     - _EnvironmentReflections: 1
-    - _FarConnectionThickness: 0.12
+    - _FarConnectionThickness: 0.08
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
     - _Metallic: 0
-    - _NearConnectionThickness: 0.5
+    - _MockRadius: 0.5
+    - _NearConnectionThickness: 0.3
     - _OcclusionStrength: 1
     - _Parallax: 0.005
     - _QueueOffset: 0
@@ -136,9 +137,10 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
-    - _StepSize: 0.01
+    - _StepSize: 0.02
     - _Surface: 0
-    - _ThinDistance: 4
+    - _ThinDistance: 2
+    - _UseMockInput: 1
     - _WorkflowMode: 1
     - _XRMotionVectorsPass: 1
     - _ZWrite: 1

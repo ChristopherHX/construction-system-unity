@@ -13,6 +13,11 @@ public class VisualizeSDF : MonoBehaviour
     public Texture3D rightSDF;
     public Transform rightTransform;
     public Matrix4x4 rightProjection;
+    public bool useMockInput = false;
+    public Vector3 mockLeftOffset = new(-0.8f, 0f, 0f);
+    public Vector3 mockRightOffset = new(0.8f, 0f, 0f);
+    [Min(0.001f)]
+    public float mockRadius = 0.5f;
     [Range(0f, 5f)]
     public float debugMode = 0f;
     private int m_lastDebugLogFrame = -9999;
@@ -34,23 +39,54 @@ public class VisualizeSDF : MonoBehaviour
             return;
         }
 
-        bool hasLeft = TryGetWorldToSdfMatrix(leftTransform, out var leftWorldToSdf, out var leftCenter);
-        bool hasRight = TryGetWorldToSdfMatrix(rightTransform, out var rightWorldToSdf, out var rightCenter);
+        bool hasLeft = false;
+        bool hasRight = false;
+        Matrix4x4 leftWorldToSdf;
+        Matrix4x4 rightWorldToSdf;
+        Vector3 leftCenter;
+        Vector3 rightCenter;
+
+        if(useMockInput)
+        {
+            leftCenter = transform.TransformPoint(mockLeftOffset);
+            rightCenter = transform.TransformPoint(mockRightOffset);
+            leftWorldToSdf = Matrix4x4.identity;
+            rightWorldToSdf = Matrix4x4.identity;
+            hasLeft = true;
+            hasRight = true;
+        }
+        else
+        {
+            hasLeft = TryGetWorldToSdfMatrix(leftTransform, out leftWorldToSdf, out leftCenter);
+            hasRight = TryGetWorldToSdfMatrix(rightTransform, out rightWorldToSdf, out rightCenter);
+            if(!hasLeft)
+            {
+                leftCenter = leftTransform != null ? leftTransform.position : Vector3.zero;
+                leftWorldToSdf = Matrix4x4.identity;
+            }
+            if(!hasRight)
+            {
+                rightCenter = rightTransform != null ? rightTransform.position : Vector3.zero;
+                rightWorldToSdf = Matrix4x4.identity;
+            }
+        }
 
         material.SetTexture("leftSDF", leftSDF);
         material.SetTexture("rightSDF", rightSDF);
-        material.SetVector("leftPosition", hasLeft ? leftCenter : (leftTransform != null ? leftTransform.position : Vector3.zero));
-        material.SetVector("rightPosition", hasRight ? rightCenter : (rightTransform != null ? rightTransform.position : Vector3.zero));
+        material.SetVector("leftPosition", leftCenter);
+        material.SetVector("rightPosition", rightCenter);
         material.SetMatrix("leftProjection", leftProjection);
         material.SetMatrix("rightProjection", rightProjection);
-        material.SetMatrix("leftWorldToSdf", hasLeft ? leftWorldToSdf : Matrix4x4.identity);
-        material.SetMatrix("rightWorldToSdf", hasRight ? rightWorldToSdf : Matrix4x4.identity);
+        material.SetMatrix("leftWorldToSdf", leftWorldToSdf);
+        material.SetMatrix("rightWorldToSdf", rightWorldToSdf);
+        material.SetFloat("_UseMockInput", useMockInput ? 1f : 0f);
+        material.SetFloat("_MockRadius", Mathf.Max(mockRadius, 0.001f));
         material.SetFloat("_DebugMode", debugMode);
 
         if(debugMode > 0f && Time.frameCount - m_lastDebugLogFrame > 30)
         {
             m_lastDebugLogFrame = Time.frameCount;
-            Debug.Log($"VisualizeSDF debug cam={camera.name} mode={debugMode} leftTex={(leftSDF != null)} rightTex={(rightSDF != null)} leftMapped={hasLeft} rightMapped={hasRight}");
+            Debug.Log($"VisualizeSDF debug cam={camera.name} mode={debugMode} mock={useMockInput} leftTex={(leftSDF != null)} rightTex={(rightSDF != null)} leftMapped={hasLeft} rightMapped={hasRight} dist={Vector3.Distance(leftCenter, rightCenter):F3}");
         }
 
         camera.GetUniversalAdditionalCameraData().scriptableRenderer.EnqueuePass(
