@@ -103,7 +103,7 @@ Shader "Unlit/VolumeShader"
             fixed4 frag(v2f i) : SV_Target
             {
                 float2 uv = saturate(i.uv);
-                float4 baseColor = float4(1.0f, 0.0f, 1.0f, 1.0f);
+                float4 baseColor = float4(1.0f, 0.0f, 1.0f, 0);
                 const float circleRadiusPx = 16.0f;
                 const float centerEpsilon = 0.01f;
 
