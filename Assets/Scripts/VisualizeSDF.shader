@@ -106,6 +106,7 @@ Shader "Unlit/VolumeShader"
                 float4 baseColor = float4(1.0f, 0.0f, 1.0f, 0);
                 const float circleRadiusPx = 16.0f;
                 const float centerEpsilon = 0.01f;
+                const float localBorderWidth = 0.015f;
 
                 if (_DebugMode >= 1.0f && _DebugMode < 2.0f)
                 {
@@ -117,7 +118,8 @@ Shader "Unlit/VolumeShader"
                     return float4(uv.x, uv.y, 0.0f, 1.0f);
                 }
 
-                float4 leftClip = mul(UNITY_MATRIX_VP, float4(leftPosition, 1.0f));
+                float3 leftCenterWS = leftPosition;
+                float4 leftClip = mul(UNITY_MATRIX_VP, float4(leftCenterWS, 1.0f));
                 if (leftClip.w <= 0.0f)
                 {
                     return baseColor;
@@ -129,11 +131,68 @@ Shader "Unlit/VolumeShader"
                 float2 leftPx = leftUv * _ScreenParams.xy;
                 float distanceToCenterPx = distance(fragPx, leftPx);
                 float inCircle = step(distanceToCenterPx, circleRadiusPx);
-                float3 leftMapped = mul(leftWorldToSdf, float4(leftPosition, 1.0f)).xyz;
+                float3 leftMapped = mul(leftWorldToSdf, float4(leftCenterWS, 1.0f)).xyz;
                 float isCentered = step(length(leftMapped), centerEpsilon);
                 float4 circleColor = lerp(float4(1.0f, 0.0f, 0.0f, 1.0f), float4(0.0f, 1.0f, 0.0f, 1.0f), isCentered);
+                float4 color = lerp(baseColor, circleColor, inCircle * circleColor.a);
 
-                return lerp(baseColor, circleColor, inCircle * circleColor.a);
+                float3 centerVS = mul(UNITY_MATRIX_V, float4(leftCenterWS, 1.0f)).xyz;
+                if (abs(centerVS.z) <= EPSILON)
+                {
+                    return color;
+                }
+
+                float2 ndc = uv * 2.0f - 1.0f;
+                float4 clipFar = float4(ndc, 1.0f, 1.0f);
+                float4 viewFar = mul(unity_CameraInvProjection, clipFar);
+                float3 viewDir = viewFar.xyz / max(abs(viewFar.w), EPSILON);
+                float viewDirZ = abs(viewDir.z) > EPSILON ? viewDir.z : (viewDir.z >= 0.0f ? EPSILON : -EPSILON);
+                float tView = centerVS.z / viewDirZ;
+                float3 sampleVS = viewDir * tView;
+                float3 samplePositionWS = mul(unity_CameraToWorld, float4(sampleVS, 1.0f)).xyz;
+                float3 centerLS = mul(leftWorldToSdf, float4(leftCenterWS, 1.0f)).xyz;
+                float3 sampleLSRaw = mul(leftWorldToSdf, float4(samplePositionWS, 1.0f)).xyz;
+                float3 sampleLS = sampleLSRaw - centerLS;
+
+                float maxAbsLocal = max(max(abs(sampleLS.x), abs(sampleLS.y)), abs(sampleLS.z));
+                float insideDist = 0.5f - maxAbsLocal;
+                float outsideBorder = 1.0f - smoothstep(localBorderWidth, localBorderWidth * 2.0f, abs(insideDist));
+
+                float3 uvw = clamp(sampleLS + 0.5f, 0.0f, 1.0f);
+                float sdfValue = tex3Dlod(leftSDF, float4(uvw, 0.0f)).r;
+                float sdfWidth = max(0.004f, abs(ddx(sdfValue)) + abs(ddy(sdfValue)));
+                float sdfZeroBorder = 1.0f - smoothstep(sdfWidth, sdfWidth * 2.0f, abs(sdfValue));
+                sdfZeroBorder *= step(-localBorderWidth, insideDist);
+
+                if (_DebugMode >= 3.0f && _DebugMode < 4.0f)
+                {
+                    float3 localVis = float3(
+                        saturate(sampleLS.x + 0.5f),
+                        saturate(sampleLS.y + 0.5f),
+                        saturate(0.5f + insideDist)
+                    );
+                    return float4(localVis, 1.0f);
+                }
+
+                if (_DebugMode >= 4.0f && _DebugMode < 5.0f)
+                {
+                    float signedVis = saturate(0.5f + sdfValue * 8.0f);
+                    return float4(signedVis, 1.0f - signedVis, sdfZeroBorder, 1.0f);
+                }
+
+                if (_DebugMode >= 5.0f)
+                {
+                    return float4(outsideBorder, sdfZeroBorder, 0.0f, 1.0f);
+                }
+
+                float4 sdfBorderColor = float4(0.0f, 1.0f, 0.0f, 1.0f);
+                float4 outsideBorderColor = float4(1.0f, 0.0f, 0.0f, 1.0f);
+                color.rgb = lerp(color.rgb, sdfBorderColor.rgb, sdfZeroBorder);
+                color.a = max(color.a, sdfZeroBorder * sdfBorderColor.a);
+                color.rgb = lerp(color.rgb, outsideBorderColor.rgb, outsideBorder);
+                color.a = max(color.a, outsideBorder * outsideBorderColor.a);
+
+                return color;
 
                 // float3 rayOrigin = _WorldSpaceCameraPos;
                 // float3 rayDirection = GetRayDirection(uv);
