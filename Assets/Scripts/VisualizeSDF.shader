@@ -104,8 +104,8 @@ Shader "Unlit/VolumeShader"
             {
                 float2 uv = saturate(i.uv);
                 float4 baseColor = float4(1.0f, 0.0f, 1.0f, 1.0f);
-                const float4 circleColor = float4(1.0f, 0.0f, 0.0f, 1.0f);
                 const float circleRadiusPx = 16.0f;
+                const float centerEpsilon = 0.01f;
 
                 if (_DebugMode >= 1.0f && _DebugMode < 2.0f)
                 {
@@ -129,6 +129,9 @@ Shader "Unlit/VolumeShader"
                 float2 leftPx = leftUv * _ScreenParams.xy;
                 float distanceToCenterPx = distance(fragPx, leftPx);
                 float inCircle = step(distanceToCenterPx, circleRadiusPx);
+                float3 leftMapped = mul(leftWorldToSdf, float4(leftPosition, 1.0f)).xyz;
+                float isCentered = step(length(leftMapped), centerEpsilon);
+                float4 circleColor = lerp(float4(1.0f, 0.0f, 0.0f, 1.0f), float4(0.0f, 1.0f, 0.0f, 1.0f), isCentered);
 
                 return lerp(baseColor, circleColor, inCircle * circleColor.a);
 
