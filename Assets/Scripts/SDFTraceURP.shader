@@ -7,6 +7,8 @@ Shader "Unlit/SDFTraceURP"
         Pass
         {
             Tags { "LightMode"="SRPDefaultUnlit" }
+            // For rendering inside the cube
+            Cull Off
 
             HLSLPROGRAM
             #pragma target 5.0
@@ -181,6 +183,29 @@ Shader "Unlit/SDFTraceURP"
                     return SpheresScene(worldPos);
             }
 
+            // For rendering inside the cube
+            bool IntersectTraceBounds(float3 rayOrigin, float3 rayDir, out float entryDistance, out float exitDistance)
+            {
+                float3 boxMin = _BoxPos - _BoxSize;
+                float3 boxMax = _BoxPos + _BoxSize;
+
+                float3 safeDir = rayDir;
+                safeDir.x = abs(safeDir.x) < 1e-6 ? (safeDir.x < 0.0 ? -1e-6 : 1e-6) : safeDir.x;
+                safeDir.y = abs(safeDir.y) < 1e-6 ? (safeDir.y < 0.0 ? -1e-6 : 1e-6) : safeDir.y;
+                safeDir.z = abs(safeDir.z) < 1e-6 ? (safeDir.z < 0.0 ? -1e-6 : 1e-6) : safeDir.z;
+
+                float3 t0 = (boxMin - rayOrigin) / safeDir;
+                float3 t1 = (boxMax - rayOrigin) / safeDir;
+                float3 tMin = min(t0, t1);
+                float3 tMax = max(t0, t1);
+
+                entryDistance = max(max(tMin.x, tMin.y), tMin.z);
+                exitDistance = min(min(tMax.x, tMax.y), tMax.z);
+
+                return exitDistance >= max(entryDistance, 0.0);
+            }
+            // End For rendering inside the cube
+
             float3 CalcNormal(float3 p)
             {
                 // Neighborhood size should be the size of a voxel in case of the sdf tex.
@@ -326,6 +351,16 @@ Shader "Unlit/SDFTraceURP"
                 float3 pos = i.world;
 
                 float3 dir = normalize(pos - cam);
+                // For rendering inside the cube
+                float entryDistance;
+                float exitDistance;
+                if (IntersectTraceBounds(cam, dir, entryDistance, exitDistance))
+                {
+                    float startDistance = max(entryDistance, max(_ProjectionParams.y, 0.001));
+                    clip(exitDistance - startDistance);
+                    pos = cam + dir * startDistance;
+                }
+                // End For rendering inside the cube
 
                 // float minDist = -1;
                 bool wasInside = 0;
