@@ -110,9 +110,9 @@ Shader "Unlit/SDFTraceURP"
                 return max(a, b) + h * h * h / (6.0 * k * k);
             }
 
-            #define r(x) frac(1e4 * sin((x) * 541.17))
-            #define sr2(x) (r(float2(x, x + 0.1)) * 2.0 - 1.0)
-            #define sr3(x) (r(float4(x, x + 0.1, x + 0.2, 0)) * 2.0 - 1.0)
+            // #define r(x) frac(1e4 * sin((x) * 541.17))
+            // #define sr2(x) (r(float2(x, x + 0.1)) * 2.0 - 1.0)
+            // #define sr3(x) (r(float4(x, x + 0.1, x + 0.2, 0)) * 2.0 - 1.0)
 
             float SpheresScene(float3 worldPos)
             {
@@ -136,15 +136,40 @@ Shader "Unlit/SDFTraceURP"
             float BoxScene(float3 worldPos)
             {
                 float dist = Box(worldPos, 0.03);
-                // float dist = 100000000;
+                uint count, stride;
+                // // _Spheres.GetDimensions(count, stride);
+                // stride = 4 * 4;
+                count = _Spheres_Count;
+                // //float dist = 10000000.0;
 
                 // dist = SmoothMinCubic(max(-SDFTex(worldPos, _Margin2), 0), dist, 0.1);
 
                 // Limit Outer (Does not always work somehow)
-                dist = SmoothMaxCubic(SDFTex(worldPos, _Margin2), dist, 0.1);
+                dist = SmoothMaxCubic(SDFTex(worldPos, _Margin2), dist, _BlendDistance);
                 // Limit Inner
-                dist = SmoothMaxCubic(-SDFTex(worldPos, _Margin), dist, 0.1);
+                dist = SmoothMaxCubic(-SDFTex(worldPos, _Margin), dist, _BlendDistance);
 
+                // for (uint i = 0; i < count; i++)
+                // {
+                //     float4 sphere = _Spheres[i];
+                //     dist = SmoothMinCubic(dist, Sphere(worldPos - sphere.xyz, sphere.w), 0.01);
+                // }
+                // Connection SDF
+
+                float insidedistance = distance(_Spheres[1].xyz, _Spheres[0].xyz) / 2;
+                // calcualate the normed ray of the connection
+                float3 ray = normalize(_Spheres[1].xyz - _Spheres[0].xyz);
+                // calculate the anchor in the middle, so +- length / 2 is within
+                float3 m = (_Spheres[0].xyz + _Spheres[1].xyz) / 2;
+                // Limit the sphere root to be inside the connection line
+                float p_a = clamp(dot(worldPos - m, ray), -insidedistance, insidedistance);
+                // Worldpos with limited connection line
+                float3 c = m + p_a * ray;
+                // Now a single sphere on the calculated sphere center
+                // Use exponential size b
+                dist = SmoothMinCubic(dist, Sphere(worldPos - c, exp(2 * abs(p_a) / insidedistance) * 0.01 + 0.01), 0.02);
+                
+                // worldPos
                 return dist;
             }
 
@@ -170,112 +195,112 @@ Shader "Unlit/SDFTraceURP"
                                  off.xxx * SampleSDF(p + off.xxx * eps));
             }
 
-            float G1V(float nv, float k)
-            {
-                return 1.0 / (nv * (1.0 - k) + k);
-            }
+            // float G1V(float nv, float k)
+            // {
+            //     return 1.0 / (nv * (1.0 - k) + k);
+            // }
 
-            float GGX(float3 n, float3 v, float3 l, float roughness, float f0)
-            {
-                float alpha = roughness * roughness;
+            // float GGX(float3 n, float3 v, float3 l, float roughness, float f0)
+            // {
+            //     float alpha = roughness * roughness;
 
-                float3 h = normalize(v + l);
+            //     float3 h = normalize(v + l);
 
-                float nl = saturate(dot(n, l));
-                float nv = saturate(dot(n, v));
-                float nh = saturate(dot(n, h));
-                float lh = saturate(dot(l, h));
+            //     float nl = saturate(dot(n, l));
+            //     float nv = saturate(dot(n, v));
+            //     float nh = saturate(dot(n, h));
+            //     float lh = saturate(dot(l, h));
 
-                float f, d;
+            //     float f, d;
 
-                float alphaSqr = alpha * alpha;
-                float denom = nh * nh * (alphaSqr - 1.0) + 1.0;
-                d = alphaSqr / (PI * denom * denom);
+            //     float alphaSqr = alpha * alpha;
+            //     float denom = nh * nh * (alphaSqr - 1.0) + 1.0;
+            //     d = alphaSqr / (PI * denom * denom);
 
-                float lh5 = pow(1.0 - lh, 5.0);
-                f = f0 + (1.0 - f0) * lh5;
+            //     float lh5 = pow(1.0 - lh, 5.0);
+            //     f = f0 + (1.0 - f0) * lh5;
 
-                float k = alpha;
-                return nl * d * f * G1V(nl, k) * G1V(nv, k);
-            }
+            //     float k = alpha;
+            //     return nl * d * f * G1V(nl, k) * G1V(nv, k);
+            // }
 
-            float Scatter(float3 p, float3 v, float3 n)
-            {
-                float3 d = refract(v, n, 1.0 / 1.5);
-                float3 o = p;
-                float a = 0.0;
+            // float Scatter(float3 p, float3 v, float3 n)
+            // {
+            //     float3 d = refract(v, n, 1.0 / 1.5);
+            //     float3 o = p;
+            //     float a = 0.0;
 
-                for (float i = SCATTER_START; i < SCATTER_MAX_DEPTH; i += SCATTER_STEP)
-                {
-                    o += i * d;
-                    float t = SampleSDF(o);
-                    if (t > 0)
-                        break;
-                    a += t;
-                }
-                float thickness = max(0.01, -a);
-                return SCATTER_AMOUNT * pow(SCATTER_MAX_DEPTH * 0.5, 3.0) / thickness;
-            }
+            //     for (float i = SCATTER_START; i < SCATTER_MAX_DEPTH; i += SCATTER_STEP)
+            //     {
+            //         o += i * d;
+            //         float t = SampleSDF(o);
+            //         if (t > 0)
+            //             break;
+            //         a += t;
+            //     }
+            //     float thickness = max(0.01, -a);
+            //     return SCATTER_AMOUNT * pow(SCATTER_MAX_DEPTH * 0.5, 3.0) / thickness;
+            // }
 
-            float Extinction(float thickness)
-            {
-                return exp(-_ExtinctionCoeff * thickness);
-            }
+            // float Extinction(float thickness)
+            // {
+            //     return exp(-_ExtinctionCoeff * thickness);
+            // }
 
-            float Anisotropy(float costheta)
-            {
-                float g = _Anisotropy;
-                float gsq = g * g;
-                float denom = 1 + gsq - 2.0 * g * costheta;
-                denom = denom * denom * denom;
-                denom = sqrt(max(0, denom));
-                return (1 - gsq) / denom;
-            }
+            // float Anisotropy(float costheta)
+            // {
+            //     float g = _Anisotropy;
+            //     float gsq = g * g;
+            //     float denom = 1 + gsq - 2.0 * g * costheta;
+            //     denom = denom * denom * denom;
+            //     denom = sqrt(max(0, denom));
+            //     return (1 - gsq) / denom;
+            // }
 
-            float DirScatter(float3 p, float3 v, float3 n)
-            {
-                // I mean, there's a lot to trim here, but we're just having fun
-                float3 d = refract(v, n, 1.0 / 1.5);
-                float a = 0.0;
-                float3 pos = p;
+            // float DirScatter(float3 p, float3 v, float3 n)
+            // {
+            //     // I mean, there's a lot to trim here, but we're just having fun
+            //     float3 d = refract(v, n, 1.0 / 1.5);
+            //     float a = 0.0;
+            //     float3 pos = p;
 
-                pos += SCATTER_START * d;
-                for (int k = 0; k < 10; k++)
-                {
-                    float t = SampleSDF(pos);
-                    pos -= t * d;
-                }
+            //     pos += SCATTER_START * d;
+            //     for (int k = 0; k < 10; k++)
+            //     {
+            //         float t = SampleSDF(pos);
+            //         pos -= t * d;
+            //     }
 
-                float thickness = length(p - pos);
-                float stepSize = thickness / (float)_DirScatterMaxIterations;
+            //     float thickness = length(p - pos);
+            //     float stepSize = thickness / (float)_DirScatterMaxIterations;
 
-                pos = p + SCATTER_START * d;
-                for (int i = 0; i < _DirScatterMaxIterations; i++)
-                {
-                    pos += stepSize * d;
-                    float t = SampleSDF(pos);
-                    if (t >= 0)
-                        break;
+            //     pos = p + SCATTER_START * d;
+            //     for (int i = 0; i < _DirScatterMaxIterations; i++)
+            //     {
+            //         pos += stepSize * d;
+            //         float t = SampleSDF(pos);
+            //         if (t >= 0)
+            //             break;
 
-                    float3 posbis = pos;
-                    float tbis = t;
-                    for (int j = 0; j < _DirScatterMaxIterationsSecondary; j++)
-                    {
-                        posbis += tbis * _LightDir;
-                        tbis = SampleSDF(posbis);
-                        if (tbis >= 0)
-                            break;
-                    }
+            //         float3 posbis = pos;
+            //         float tbis = t;
+            //         for (int j = 0; j < _DirScatterMaxIterationsSecondary; j++)
+            //         {
+            //             posbis += tbis * _LightDir;
+            //             tbis = SampleSDF(posbis);
+            //             if (tbis >= 0)
+            //                 break;
+            //         }
 
-                    float thicknessToLight = length(pos - posbis);
-                    float inscatter = Extinction(thicknessToLight);
-                    float thicknessToInscatterPos = length(p - pos);
-                    a += inscatter * Extinction(thicknessToInscatterPos) / max(thickness, 0.01);
-                }
+            //         float thicknessToLight = length(pos - posbis);
+            //         float inscatter = Extinction(thicknessToLight);
+            //         float thicknessToInscatterPos = length(p - pos);
+            //         a += inscatter * Extinction(thicknessToInscatterPos) / max(thickness, 0.01);
+            //     }
 
-                float aniso = Anisotropy(dot(v, -_LightDir));
-                return _DirScatterAmount * a * aniso;
-            }
+            //     float aniso = Anisotropy(dot(v, -_LightDir));
+            //     return _DirScatterAmount * a * aniso;
+            // }
 
             float3 Shade(float3 p, float3 v, float3 n)
             {
@@ -283,16 +308,16 @@ Shader "Unlit/SDFTraceURP"
 
                 float fresnel = pow(max(0.0, 1.0 + dot(n, v)), 5.0);
                 float diffuse = max(0.0, dot(n, l));
-                float spec = GGX(n, v, l, 3.0, fresnel);
+                //float spec = GGX(n, v, l, 3.0, fresnel);
 
                 // shading crimes
                 fresnel *= 0.3;
                 diffuse *= 0.3;
-                spec *= 50.0;
+                //spec *= 50.0;
 
-                float scatter = Scatter(p, v, n) + DirScatter(p, v, n);
+                //float scatter = Scatter(p, v, n) + DirScatter(p, v, n);
 
-                return _Ambient + fresnel * _Sky + _LightColor * (_Albedo * diffuse + _Albedo * scatter + spec);
+                return _Ambient + fresnel * _Sky + _LightColor * (_Albedo * diffuse /*+ _Albedo * scatter + spec**/);
             }
 
             FragOutput frag(VertOutput i)
@@ -302,9 +327,24 @@ Shader "Unlit/SDFTraceURP"
 
                 float3 dir = normalize(pos - cam);
 
+                // float minDist = -1;
+                bool wasInside = 0;
+
+                // the count of k is relevant if it does not really converges a higher loop helps
                 for (int k = 0; k < 128; k++)
                 {
                     float dist = SampleSDF(pos);
+
+                    // if(k == 0 || dist <= minDist) {
+                    //     minDist = dist;
+                    // } else {
+                    //     break;
+                    // }
+                    // if(dist <= 0) {
+                    //     wasInside = 1;
+                    // } else if(wasInside) {
+                    //     break;
+                    // }
 
                     // We don't early-out, because going through the full iteration count
                     // converges on the surface much better.

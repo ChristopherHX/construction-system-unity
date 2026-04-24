@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
@@ -146,7 +148,116 @@ public class SDFTracer : MonoBehaviour
         m_Props.SetFloat(Uniforms._BlendDistance, m_BlendDistance);
         m_Props.SetInt(Uniforms._Mode, (int)m_Mode);
 
-        Vector4[] spheres = null; // m_Spheres != null ? m_Spheres.spheres : null;
+        // Vector4[] spheres = new Vector4[]
+        // {
+        //     // new Vector4(-0.6f, 0, 0, 0.2f),
+        //     // new Vector4(-0.45f, 0, 0, 0.02f),
+        //     // new Vector4(-0.4f, 0, 0, 0.02f),
+        //     // new Vector4(-0.35f, 0, 0, 0.02f),
+        //     // new Vector4(-0.3f, 0, 0, 0.02f),
+        //     // new Vector4(-0.25f, 0, 0, 0.02f),
+        //     // new Vector4(-0.2f, 0, 0, 0.02f),
+        //     // new Vector4(-0.15f, 0, 0, 0.02f),
+        //     // new Vector4(-0.1f, 0, 0, 0.014f),
+        //     // new Vector4(-0.05f, 0, 0, 0.012f),
+        //     // new Vector4(0, 0, 0, 0.005f),
+        //     // new Vector4(0.05f, 0, 0, 0.012f),
+        //     // new Vector4(0.1f, 0, 0, 0.014f),
+        //     // new Vector4(0.15f, 0, 0, 0.02f),
+        //     // new Vector4(0.2f, 0, 0, 0.02f),
+        //     // new Vector4(0.25f, 0, 0, 0.02f),
+        //     // // z
+        //     // new Vector4(0, 0, 0.05f, 0.012f),
+        //     // new Vector4(0, 0, 0.1f, 0.014f),
+        //     // new Vector4(0, 0, 0.15f, 0.02f),
+        //     // new Vector4(0, 0, 0.2f, 0.02f),
+        //     // new Vector4(0, 0, 0.25f, 0.02f),
+        //     // new Vector4(0, 0, 0.3f, 0.02f),
+        //     // new Vector4(0, 0, 0.35f, 0.02f),
+        //     // new Vector4(0, 0, 0.4f, 0.02f),
+        //     // new Vector4(0, 0, 0.45f, 0.02f),
+        //     // new Vector4(0, 0, 0.5f, 0.02f),
+
+        //     // new Vector4(0, 0, -0.15f, 0.008f),
+        //     // new Vector4(0, 0, -0.1f, 0.005f),
+        //     // new Vector4(0, 0, -0.06f, 0.004f),
+        //     // With merge distance 0.01
+        //     // new Vector4(0, 0, 0, 0.001f),
+        //     // new Vector4(0, 0, 0.004f, 0.001f),
+        //     // new Vector4(0, 0, 0.008f, 0.001f),
+        //     // new Vector4(0, 0, 0.012f, 0.001f),
+        //     // new Vector4(0, 0, 0.016f, 0.001f),
+        //     // new Vector4(0, 0, 0.020f, 0.001f),
+        //     // new Vector4(0, 0, 0.024f, 0.001f),
+        //     // new Vector4(0, 0, 0.028f, 0.001f),
+        //     // new Vector4(0, 0, 0.032f, 0.001f),
+        //     // End
+        //     // Make bigger to one side
+        //     new Vector4(0, 0, 0, 0.001f),
+        //     new Vector4(0, 0, 0.004f, 0.001f),
+        //     new Vector4(0, 0, 0.008f, 0.001f),
+        //     new Vector4(0, 0, 0.012f, 0.002f),
+        //     new Vector4(0, 0, 0.016f, 0.002f),
+        //     new Vector4(0, 0, 0.020f, 0.003f),
+        //     new Vector4(0, 0, 0.024f, 0.003f),
+        //     new Vector4(0, 0, 0.028f, 0.004f),
+        //     new Vector4(0, 0, 0.032f, 0.004f),
+        //     // END
+        //     // Make bigger to one side
+        //     // new Vector4(0, 0, 0, 0.001f),
+        //     new Vector4(0, 0, -0.004f, 0.001f),
+        //     new Vector4(0, 0, -0.008f, 0.001f),
+        //     new Vector4(0, 0, -0.012f, 0.002f),
+        //     new Vector4(0, 0, -0.016f, 0.002f),
+        //     new Vector4(0, 0, -0.020f, 0.003f),
+        //     new Vector4(0, 0, -0.024f, 0.003f),
+        //     new Vector4(0, 0, -0.028f, 0.004f),
+        //     new Vector4(0, 0, -0.032f, 0.004f),
+        //     new Vector4(0, 0, -0.036f, 0.005f),
+        //     new Vector4(0, 0, -0.040f, 0.005f),
+        //     // END
+        //     // new Vector4(0, 0, 0.05f, 0.004f),
+        //     // new Vector4(0, 0, 0.1f, 0.005f),
+        //     // new Vector4(0, 0, 0.15f, 0.008f),
+        //     // new Vector4(0, 0, 0.15f, 0.011f),
+        //     // new Vector4(0, 0, 0.2f, 0.02f),
+        //     // new Vector4(0, 0, 0.25f, 0.02f),
+        //     // new Vector4(0, 0, 0.3f, 0.02f),
+        //     // new Vector4(0, 0, 0.35f, 0.02f),
+        //     // new Vector4(0, 0, 0.4f, 0.02f),
+        //     // new Vector4(0, 0, 0.45f, 0.02f),
+        //     // new Vector4(0, 0, 0.5f, 0.02f),
+        // };
+
+        // List<Vector4> sphereList = new List<Vector4>();
+        // for(int i = 0; i <)
+        // spheres = sphereList.ToArray();
+        // int length = 125;
+        // Vector4[] spheres = new Vector4[length * 2 + 1];
+        // spheres[0] = new Vector4(0, 0, 0, 0.001f);
+        // for(int i = 0; i < length; i++)
+        // {
+        //     // spheres[i * 2 + 1] = new Vector4(0, 0, i * 0.004f, Mathf.Log(i) / Mathf.Log(2) * 0.002f + 0.001f);
+        //     // spheres[i * 2 + 2] = new Vector4(0, 0, -i * 0.004f, Mathf.Log(i) / Mathf.Log(2) * 0.002f + 0.001f);
+        //     // spheres[i * 2 + 1] = new Vector4(0, 0, i * 0.004f, i * 0.001f + 0.01f);
+        //     // spheres[i * 2 + 2] = new Vector4(0, 0, -i * 0.004f, i * 0.001f + 0.01f);
+        //     spheres[i * 2 + 1] = new Vector4(0, 0, i * 0.004f, Mathf.Exp(i / (length / 3f)) * 0.001f + 0.01f);
+        //     spheres[i * 2 + 2] = new Vector4(0, 0, -i * 0.004f, Mathf.Exp(i / (length / 3f)) * 0.001f + 0.01f);
+        // }
+        // int length = 8;
+        // Vector4[] spheres = new Vector4[length * 2 + 1];
+        // spheres[0] = new Vector4(0, 0, 0, 0.01f);
+        // float offset = 0;
+        // for(int i = 0; i < length; i++)
+        // {
+        //     var radius = Mathf.Exp(i / (length / 3f)) * 0.01f;
+        //     offset = radius;
+        //     spheres[i * 2 + 1] = new Vector4(0, 0, offset, i * 0.01f + 0.01f);
+        //     spheres[i * 2 + 2] = new Vector4(0, 0, -offset, i * 0.01f + 0.01f);
+        // }
+        Vector4[] spheres = new Vector4[2];
+        spheres[0] = new Vector4(0, 0, 0.5f, 0.1f);
+        spheres[1] = new Vector4(0, 0, -0.5f, 0.1f);
 
         if (spheres != null && spheres.Length > 0)
         {
