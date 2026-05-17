@@ -42,21 +42,29 @@ public static class MeshTextureRegions
             {
                 if (visited[x, y]) continue;
 
+                // breadth-first flood fill
+
                 Color target = tex.GetPixel(x, y);
                 ColorRegion region = new()
                 {
                     color = target
                 };
 
+                // 1. Set Q to the empty queue or stack.
                 Queue<Vector2Int> q = new();
+                // 2. Add node to the end of Q.
                 q.Enqueue(new Vector2Int(x, y));
 
+                // 3. While Q is not empty:
                 while (q.Count > 0)
                 {
+                    // 4.   Set n equal to the first element of Q.
+                    // 5.   Remove first element from Q.
                     var p = q.Dequeue();
                     int px = p.x;
                     int py = p.y;
 
+                    // 6.   If n is Outside skip to next interation 
                     if (px < 0 || px >= w || py < 0 || py >= h) continue;
                     if (visited[px, py]) continue;
 
@@ -66,14 +74,24 @@ public static class MeshTextureRegions
                     visited[px, py] = true;
                     region.pixels.Add(p);
 
+                    // Add the node to the west of n to the end of Q.
+                    // Add the node to the east of n to the end of Q.
+                    // Add the node to the north of n to the end of Q.
+                    // Add the node to the south of n to the end of Q.
                     q.Enqueue(new Vector2Int(px + 1, py));
                     q.Enqueue(new Vector2Int(px - 1, py));
                     q.Enqueue(new Vector2Int(px, py + 1));
                     q.Enqueue(new Vector2Int(px, py - 1));
+
+                    // 7. Continue looping until Q is exhausted.
                 }
 
                 if (region.pixels.Count > 0)
                     regions.Add(region);
+
+                // Here we look for other non visited pixels to flood fill
+                // https://en.wikipedia.org/wiki/Flood_fill
+                // Moving the recursion into a data structure
             }
         }
 

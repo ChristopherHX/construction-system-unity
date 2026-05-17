@@ -48,6 +48,23 @@ public class SDFTextureVFX : MonoBehaviour
     public Vector3Int voxelResolution => m_GridSize;
     public Bounds voxelBounds => new Bounds(m_Center, m_ActualSize);
 
+    public Matrix4x4 localToSDFTexCoords
+    {
+        get
+        {
+            Vector3 size = voxelBounds.size;
+            if (size.x <= 0.0f || size.y <= 0.0f || size.z <= 0.0f)
+                return Matrix4x4.identity;
+
+            Matrix4x4 sdfLocalToTex =
+                Matrix4x4.Translate(Vector3.one * 0.5f) *
+                Matrix4x4.Scale(new Vector3(1.0f / size.x, 1.0f / size.y, 1.0f / size.z)) *
+                Matrix4x4.Translate(-voxelBounds.center);
+
+            return sdfLocalToTex;
+        }
+    }
+
     public Matrix4x4 worldToSDFTexCoords
     {
         get
