@@ -85,7 +85,7 @@ namespace InputSystem {
                 // }
 
                 
-                hit.AddComponent<PowerHand>();//.follow = transform;
+                hit.AddComponent<PowerHand>().follow = transform;
                 // hit.AddComponent<ConnectionStart>();
                 system.Highlight(hit, VisualisationSystem.VisualisationSystem.HighlightMode.Selection);
 

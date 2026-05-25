@@ -79,7 +79,7 @@ namespace PhysicsSystem
             _joint.anchor = transform.InverseTransformPoint(_moveJoint.transform.position);
             if(follow != null)
             {
-                _moveJoint.targetPosition = follow.position;
+                _moveJoint.targetPosition = -follow.position;
             }
             // _moveRigidbody.centerOfMass = _moveRigidbody.transform.InverseTransformPoint(transform.position);
         }
