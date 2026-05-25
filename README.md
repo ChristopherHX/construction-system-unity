@@ -44,3 +44,7 @@ Assets/Scenes/VisualSpring.unity
 ## 5.1.2 Verwenden von Joints statt WheelCollider
 
 Reference Example with WheelCollider from Unity Docs Assets/Scenes/WheelColliderExample.unity
+
+## 5.2 Grenzen des Nachbaus
+
+Assets/Scenes/ConnectionTestFixedJoint.unity
