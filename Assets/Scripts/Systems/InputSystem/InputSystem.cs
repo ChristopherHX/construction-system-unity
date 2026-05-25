@@ -1,4 +1,5 @@
 using System;
+using PhysicsSystem;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -84,8 +85,52 @@ namespace InputSystem {
                 // }
 
                 
-                hit.AddComponent<ConnectionStart>();
+                hit.AddComponent<PowerHand>();//.follow = transform;
+                // hit.AddComponent<ConnectionStart>();
                 system.Highlight(hit, VisualisationSystem.VisualisationSystem.HighlightMode.Selection);
+
+                // // Rotate 90 Degree to right
+                // var _joint = hit.AddComponent<ConfigurableJoint>();
+                // _joint.connectedBody = null;
+                // _joint.autoConfigureConnectedAnchor = false;
+                // _joint.anchor = hit.transform.InverseTransformPoint(transform.position);
+                // _joint.connectedAnchor = transform.position;
+
+                // _joint.xMotion = ConfigurableJointMotion.Limited;
+                // _joint.yMotion = ConfigurableJointMotion.Limited;
+                // _joint.zMotion = ConfigurableJointMotion.Limited;
+                // var jt = _joint.zDrive;
+                // jt.maximumForce = 10000f;
+                // jt.positionSpring = 2000;
+                // jt.positionDamper = 2000;
+                // _joint.zDrive = jt;
+                // _joint.targetPosition = - 5*Vector3.up;
+
+                // _joint.angularXMotion = ConfigurableJointMotion.Limited;
+                // _joint.angularYMotion = ConfigurableJointMotion.Free;
+                // _joint.angularZMotion = ConfigurableJointMotion.Limited;
+                // _joint.rotationDriveMode = RotationDriveMode.Slerp;
+                // _joint.enableCollision = true;
+
+                // float dist = Vector3.Distance(transform.position, hit.transform.position);
+
+                // SoftJointLimit limit = _joint.linearLimit;
+                // limit.limit = 0;
+                // _joint.linearLimit = limit;
+                // // Rotate 90 Degree to right
+                // _joint.targetRotation = Quaternion.AngleAxis(-90, Vector3.up) * transform.rotation;
+
+                // JointDrive drive = new JointDrive
+                // {
+                //     positionSpring = 2000f,
+                //     positionDamper = 2000f,
+                //     maximumForce = 10000f
+                // };
+
+                // _joint.slerpDrive = drive;
+
+                // // Optional: helps stabilize orientation behavior.
+                // _joint.configuredInWorldSpace = false;
             }
         }
 
