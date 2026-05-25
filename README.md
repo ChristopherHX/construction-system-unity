@@ -26,7 +26,11 @@ Video: [Videos/Stehaufmännchen.mov](Videos/Stehaufmännchen.mov)
 
 Here is a video of a Unity Demo modification to render the Slime as a thin skin over an existing Object. (Code not in this repo, except the ported code to URP without that specific model)
 
-Video [Videos/ThinSlimeDemo.mov](Videos/ThinSlimeDemo.mov)
+Video: [Videos/ThinSlimeDemo.mov](Videos/ThinSlimeDemo.mov)
+
+## WindZone Demo
+
+Video: [Videos/Windzonedemo.mov](Videos/Windzonedemo.mov) 
 
 ## POCs
 
