@@ -22,6 +22,12 @@ Video: [Videos/VehicleDemo.mov](Videos/VehicleDemo.mov)
 
 Video: [Videos/Stehaufmännchen.mov](Videos/Stehaufmännchen.mov)
 
+## Thin Slime Skin Demo for Connection Glue
+
+Here is a video of a Unity Demo modification to render the Slime as a thin skin over an existing Object. (Code not in this repo, except the ported code to URP without that specific model)
+
+Video [Videos/ThinSlimeDemo.mov](Videos/ThinSlimeDemo.mov)
+
 ## POCs
 
 ### 4.4.1 StehAufMännchen
