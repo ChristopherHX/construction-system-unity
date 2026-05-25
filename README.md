@@ -14,6 +14,10 @@ Scene: `Assets/Scenes/ConnectorWithRaycast-SnapTogether.unity`
 
 Video: [Videos/Demo.mov](Videos/Demo.mov)
 
+## Vehicle Demo
+
+Video: [Videos/VehicleDemo.mov](Videos/VehicleDemo.mov)
+
 ## POCs
 
 ### 4.4.1 StehAufMännchen
