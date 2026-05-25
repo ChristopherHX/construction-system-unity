@@ -25,6 +25,8 @@ Assets/Scenes/ConnectorWithRaycast-SnapTogether.unity
 
 ## 4.4.4 Räder
 
+Assets/Scenes/SampleScene.unity
+
 - Motorisiertes Rad in: Assets/Scenes/DrivingConfigureableJointWheel.unity
 
 ## 4.4.5 Fahrzeug
