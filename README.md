@@ -8,6 +8,12 @@
 
 [Demo.mov](Videos/Demo.mov)
 
+## Connection Demo
+
+Scene: `Assets/Scenes/ConnectorWithRaycast-SnapTogether.unity`
+
+Video: [Videos/Demo.mov](Videos/Demo.mov)
+
 ## POCs
 
 ### 4.4.1 StehAufMännchen
