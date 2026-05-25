@@ -80,6 +80,7 @@ namespace PhysicsSystem
             if(follow != null)
             {
                 _moveJoint.targetPosition = -follow.position;
+                _joint.targetRotation = Quaternion.Inverse(follow.rotation);
             }
             // _moveRigidbody.centerOfMass = _moveRigidbody.transform.InverseTransformPoint(transform.position);
         }

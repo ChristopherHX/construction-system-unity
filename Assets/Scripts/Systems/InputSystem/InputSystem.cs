@@ -146,7 +146,8 @@ namespace InputSystem {
         {
             Debug.DrawLine(CameraRay.origin, CameraRay.origin + CameraRay.direction * 20, Color.aquamarine);
             var move = _actions.PlayerBuilding.Move.ReadValue<Vector2>();
-            _characterController.Move(new Vector3(move.x * Time.deltaTime, 0, move.y * Time.deltaTime));
+            _characterController.Move(new Vector3(0, 0, move.y * Time.deltaTime));
+            transform.rotation = Quaternion.AngleAxis(move.x, Vector3.up) * transform.rotation;
             var look = _actions.PlayerBuilding.Look.ReadValue<Vector2>();
 
             // Using 89 to avoid any glitch at +-90°
