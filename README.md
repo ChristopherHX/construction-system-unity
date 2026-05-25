@@ -18,6 +18,10 @@ Video: [Videos/Demo.mov](Videos/Demo.mov)
 
 Video: [Videos/VehicleDemo.mov](Videos/VehicleDemo.mov)
 
+## StehAufMännchen Demo
+
+Video: [Videos/Stehaufmännchen.mov](Videos/Stehaufmännchen.mov)
+
 ## POCs
 
 ### 4.4.1 StehAufMännchen
